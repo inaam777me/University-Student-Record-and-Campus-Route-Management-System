@@ -1,0 +1,203 @@
+package com.university.management;
+
+import com.university.datastructures.StudentLinkedList;
+import com.university.model.Student;
+
+/**
+ * CIT300 Data Structures and Algorithms - Group Project
+ * Project: University Student Record and Campus Route Management System
+ * Responsibility: Member 1 - Student Record Management Service
+ *
+ * This class acts as the business logic / service controller for all student record
+ * management operations. It encapsulates the underlying StudentLinkedList and exposes
+ * high-level, validated methods for consumption by the console UI and peer modules
+ * (Member 2's Stack/Queue, Member 3's BST/AVL, Member 4's Hashing).
+ */
+public class StudentManager {
+    private final StudentLinkedList studentList;
+
+    /**
+     * Constructs a new StudentManager with an internal custom StudentLinkedList.
+     */
+    public StudentManager() {
+        this.studentList = new StudentLinkedList();
+    }
+
+    /**
+     * Constructs a StudentManager that operates on an existing StudentLinkedList instance.
+     * Useful when sharing a linked list across group modules.
+     *
+     * @param studentList Existing linked list instance
+     */
+    public StudentManager(StudentLinkedList studentList) {
+        if (studentList == null) {
+            throw new IllegalArgumentException("StudentLinkedList cannot be null.");
+        }
+        this.studentList = studentList;
+    }
+
+    /**
+     * Exposes the underlying linked list for peer group members to integrate with.
+     *
+     * @return the StudentLinkedList instance
+     */
+    public StudentLinkedList getStudentList() {
+        return studentList;
+    }
+
+    /**
+     * Validates and adds a new student record to the system.
+     * Enforces non-empty strings, mark range [0, 100], and unique Student ID.
+     *
+     * @param studentId Unique student identifier
+     * @param name      Full name of student
+     * @param programme Programme of study
+     * @param marks     Academic score (0.0 to 100.0)
+     * @return true if student was successfully registered, false otherwise
+     */
+    public boolean addStudent(String studentId, String name, String programme, double marks) {
+        if (studentId == null || studentId.trim().isEmpty()) {
+            System.err.println("[Error] Student ID cannot be empty.");
+            return false;
+        }
+        if (name == null || name.trim().isEmpty()) {
+            System.err.println("[Error] Student Name cannot be empty.");
+            return false;
+        }
+        if (programme == null || programme.trim().isEmpty()) {
+            System.err.println("[Error] Programme cannot be empty.");
+            return false;
+        }
+        if (!Student.isValidMarks(marks)) {
+            System.err.println("[Error] Invalid marks: " + marks + ". Must be between 0.0 and 100.0.");
+            return false;
+        }
+
+        if (studentList.studentExists(studentId)) {
+            System.err.println("[Error] Duplicate record: Student with ID '" + studentId.trim() + "' already exists.");
+            return false;
+        }
+
+        Student student = new Student(studentId, name, programme, marks);
+        return studentList.addStudent(student);
+    }
+
+    /**
+     * Overloaded method to add an existing Student object.
+     *
+     * @param student Pre-constructed Student object
+     * @return true if added, false if duplicate or invalid
+     */
+    public boolean addStudent(Student student) {
+        if (student == null) {
+            System.err.println("[Error] Student object cannot be null.");
+            return false;
+        }
+        return addStudent(student.getStudentId(), student.getName(), student.getProgramme(), student.getMarks());
+    }
+
+    /**
+     * Updates an existing student record with new details.
+     *
+     * @param studentId    ID of student to update
+     * @param newName      Updated name
+     * @param newProgramme Updated programme
+     * @param newMarks     Updated marks (0.0 to 100.0)
+     * @return true if update succeeded, false if validation failed or student not found
+     */
+    public boolean updateStudent(String studentId, String newName, String newProgramme, double newMarks) {
+        if (studentId == null || studentId.trim().isEmpty()) {
+            System.err.println("[Error] Student ID cannot be empty.");
+            return false;
+        }
+        if (newName == null || newName.trim().isEmpty()) {
+            System.err.println("[Error] Updated Name cannot be empty.");
+            return false;
+        }
+        if (newProgramme == null || newProgramme.trim().isEmpty()) {
+            System.err.println("[Error] Updated Programme cannot be empty.");
+            return false;
+        }
+        if (!Student.isValidMarks(newMarks)) {
+            System.err.println("[Error] Invalid marks: " + newMarks + ". Must be between 0.0 and 100.0.");
+            return false;
+        }
+
+        return studentList.updateStudent(studentId, newName.trim(), newProgramme.trim(), newMarks);
+    }
+
+    /**
+     * Deletes a student record by ID.
+     *
+     * @param studentId ID of student to remove
+     * @return true if deleted, false if record was not found
+     */
+    public boolean deleteStudent(String studentId) {
+        if (studentId == null || studentId.trim().isEmpty()) {
+            System.err.println("[Error] Student ID cannot be empty.");
+            return false;
+        }
+
+        boolean removed = studentList.deleteStudent(studentId);
+        if (!removed) {
+            System.err.println("[Error] Cannot delete: Student with ID '" + studentId.trim() + "' does not exist.");
+        }
+        return removed;
+    }
+
+    /**
+     * Searches for a student by ID.
+     *
+     * @param studentId ID to search for
+     * @return Student record if found, or null if missing
+     */
+    public Student searchStudent(String studentId) {
+        if (studentId == null || studentId.trim().isEmpty()) {
+            System.err.println("[Error] Search ID cannot be empty.");
+            return null;
+        }
+
+        Student found = studentList.searchStudent(studentId);
+        if (found == null) {
+            System.out.println("[Search Result] No student found with ID: " + studentId.trim());
+        }
+        return found;
+    }
+
+    /**
+     * Checks if a student with the given ID exists in the system.
+     *
+     * @param studentId ID to check
+     * @return true if exists, false otherwise
+     */
+    public boolean studentExists(String studentId) {
+        return studentList.studentExists(studentId);
+    }
+
+    /**
+     * Displays all student records in a clean tabular view.
+     */
+    public void displayStudents() {
+        studentList.displayStudents();
+    }
+
+    /**
+     * Returns total number of registered students.
+     *
+     * @return current count
+     */
+    public int getTotalStudents() {
+        return studentList.getSize();
+    }
+
+    /**
+     * Pre-loads demo data into the linked list for quick testing and peer verification.
+     */
+    public void populateSampleData() {
+        addStudent("S101", "Alice Johnson", "BSc Computer Science", 88.50);
+        addStudent("S102", "Bob Smith", "BEng Software Engineering", 74.00);
+        addStudent("S103", "Charlie Davis", "BSc Information Technology", 92.00);
+        addStudent("S104", "Diana Prince", "BSc Data Science", 65.50);
+        addStudent("S105", "Evan Wright", "BSc Computer Science", 48.00);
+    }
+}
