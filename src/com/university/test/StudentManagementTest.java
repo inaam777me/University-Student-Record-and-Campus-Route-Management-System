@@ -1,6 +1,8 @@
 package com.university.test;
 
 import com.university.datastructures.StudentLinkedList;
+import com.university.datastructures.StudentBinarySearchTree;
+import com.university.datastructures.StudentHashTable;
 import com.university.datastructures.StudentNode;
 import com.university.management.StudentManager;
 import com.university.model.Student;
@@ -37,6 +39,9 @@ public class StudentManagementTest {
         testDeleteOperations();
         testMissingRecordHandling();
         testIntegrationExport();
+        testBinarySearchTree();
+        testHashTable();
+        testManagerStructureSynchronization();
 
         System.out.println("\n=================================================");
         System.out.printf(" TEST SUMMARY: %d/%d PASSED (%.1f%%)\n",
@@ -191,5 +196,65 @@ public class StudentManagementTest {
         assertTrue("Exported array length matches list size", array.length == 2);
         assertTrue("First element matches S101", array[0].getStudentId().equals("S101"));
         assertTrue("Second element matches S102", array[1].getStudentId().equals("S102"));
+    }
+
+    private static void testBinarySearchTree() {
+        System.out.println("\n--- 10. Binary Search Tree Operations ---");
+        StudentBinarySearchTree tree = new StudentBinarySearchTree();
+        Student middle = new Student("S102", "Bob", "BEng SE", 75.0);
+        Student successor = new Student("S103", "Charlie", "BSc CS", 70.0);
+        tree.insert(middle);
+        tree.insert(new Student("S101", "Alice", "BSc CS", 80.0));
+        tree.insert(successor);
+
+        assertTrue("BST starts non-empty after insertion", !tree.isEmpty());
+        assertTrue("BST finds IDs without case sensitivity", tree.search("s101") != null);
+        assertTrue("BST rejects duplicate ID", !tree.insert(new Student("s102", "Duplicate", "BSc CS", 50.0)));
+        assertTrue("BST reports missing ID", tree.search("S999") == null);
+        assertTrue("BST deletes a node with two children", tree.delete("S102"));
+        assertTrue("BST preserves successor after two-child deletion", tree.search("S103") == successor);
+        assertTrue("BST deletion does not mutate shared student ID", "S102".equals(middle.getStudentId()));
+        assertTrue("BST no longer contains deleted ID", !tree.contains("S102"));
+        assertTrue("BST rejects blank IDs", tree.search("  ") == null && !tree.delete("  "));
+        tree.delete("S101");
+        tree.delete("S103");
+        assertTrue("BST is empty after deleting all nodes", tree.isEmpty());
+    }
+
+    private static void testHashTable() {
+        System.out.println("\n--- 11. Hash Table Operations ---");
+        StudentHashTable table = new StudentHashTable();
+        Student first = new Student("a", "Alice", "BSc CS", 80.0);
+        Student colliding = new Student("l", "Liam", "BSc CS", 75.0);
+        assertTrue("Empty hash table search returns null", table.search("a") == null);
+        assertTrue("Hash table accepts first student", table.insert(first));
+        assertTrue("Hash table accepts a colliding student", table.insert(colliding));
+        assertTrue("Hash table search returns matching student", table.search("A") == first);
+        assertTrue("Hash table rejects duplicate ID", !table.insert(new Student("A", "Again", "BSc CS", 60.0)));
+        assertTrue("Hash table removes an entry from a collision chain", table.delete("a"));
+        assertTrue("Collision-chain entry remains searchable", table.search("l") == colliding);
+        assertTrue("Hash table reports missing IDs", table.search("missing") == null);
+        assertTrue("Hash table rejects blank IDs", table.search(" ") == null && !table.delete(" "));
+        table.delete("l");
+        assertTrue("Hash table is empty after deleting all entries", table.isEmpty());
+    }
+
+    private static void testManagerStructureSynchronization() {
+        System.out.println("\n--- 12. Manager Synchronization ---");
+        StudentManager manager = new StudentManager();
+        manager.addStudent("S101", "Alice", "BSc CS", 80.0);
+        manager.addStudent("S102", "Bob", "BEng SE", 75.0);
+
+        assertTrue("Added student is searchable in the BST", manager.getStudentTree().search("S101") != null);
+        assertTrue("Added student is searchable in the hash table", manager.searchStudentByHashing("S101") != null);
+        manager.updateStudent("S101", "Alice Updated", "BSc DS", 90.0);
+        assertTrue("Update is visible through the hash table reference",
+                "Alice Updated".equals(manager.searchStudentByHashing("S101").getName()));
+        assertTrue("Deletion removes student from the linked list", manager.deleteStudent("S101")
+                && !manager.getStudentList().studentExists("S101"));
+        assertTrue("Deletion removes student from BST", manager.getStudentTree().search("S101") == null);
+        assertTrue("Deletion removes student from hash table", manager.searchStudentByHashing("S101") == null);
+        assertTrue("Duplicate IDs remain rejected across all structures",
+                !manager.addStudent("s102", "Duplicate", "BSc CS", 50.0));
     }
 }

@@ -1,7 +1,10 @@
 package com.university.management;
 
-import com.university.datastructures.StudentLinkedList;
 import com.university.datastructures.ActionStack;
+import com.university.datastructures.StudentBinarySearchTree;
+import com.university.datastructures.StudentHashTable;
+import com.university.datastructures.StudentLinkedList;
+import com.university.datastructures.StudentNode;
 import com.university.model.Action;
 import com.university.model.Student;
 
@@ -17,10 +20,12 @@ import com.university.model.Student;
  */
 public class StudentManager {
     private final StudentLinkedList studentList;
+    private final StudentBinarySearchTree studentTree;
+    private final StudentHashTable studentHashTable;
     private final ActionStack actionStack;
 
     /**
-     * Constructs a new StudentManager with an internal custom StudentLinkedList.
+     * Constructs a new StudentManager with its custom linked list, tree, hash table, and action stack.
      */
     public StudentManager() {
         this(new StudentLinkedList(), new ActionStack());
@@ -44,8 +49,18 @@ public class StudentManager {
         if (actionStack == null) {
             throw new IllegalArgumentException("ActionStack cannot be null.");
         }
+
         this.studentList = studentList;
+        this.studentTree = new StudentBinarySearchTree();
+        this.studentHashTable = new StudentHashTable();
         this.actionStack = actionStack;
+
+        StudentNode current = studentList.getHead();
+        while (current != null) {
+            studentTree.insert(current.getData());
+            studentHashTable.insert(current.getData());
+            current = current.getNext();
+        }
     }
 
     /**
@@ -55,6 +70,14 @@ public class StudentManager {
      */
     public StudentLinkedList getStudentList() {
         return studentList;
+    }
+
+    public StudentBinarySearchTree getStudentTree() {
+        return studentTree;
+    }
+
+    public StudentHashTable getStudentHashTable() {
+        return studentHashTable;
     }
 
     /** Returns the recent-action stack shared with peer service modules. */
@@ -98,8 +121,10 @@ public class StudentManager {
         Student student = new Student(studentId, name, programme, marks);
         boolean added = studentList.addStudent(student);
         if (added) {
+            studentTree.insert(student);
+            studentHashTable.insert(student);
             actionStack.push(new Action("STUDENT_ADDED", student.getStudentId(),
-                "Added student " + student.getName()));
+                    "Added student " + student.getName()));
         }
         return added;
     }
@@ -146,10 +171,15 @@ public class StudentManager {
         }
 
         Student existing = studentList.searchStudent(studentId);
+        if (existing == null) {
+            System.err.println("[Not Found Error] Student with ID '" + studentId + "' does not exist.");
+            return false;
+        }
+
         boolean updated = studentList.updateStudent(studentId, newName.trim(), newProgramme.trim(), newMarks);
         if (updated) {
             actionStack.push(new Action("STUDENT_UPDATED", existing.getStudentId(),
-                "Updated student record for " + existing.getName()));
+                    "Updated student record for " + existing.getName()));
         }
         return updated;
     }
@@ -167,7 +197,85 @@ public class StudentManager {
         }
 
         Student existing = studentList.searchStudent(studentId);
+        if (existing == null) {
+            System.err.println("[Error] Cannot delete: Student with ID '" + studentId.trim() + "' does not exist.");
+            return false;
+        }
+
         boolean removed = studentList.deleteStudent(studentId);
+        if (!removed) {
+            System.err.println("[Error] Cannot delete: Student with ID '" + studentId.trim() + "' does not exist.");
+            return false;
+        }
+
+        studentTree.delete(studentId);
+        studentHashTable.delete(studentId);
+        actionStack.push(new Action("STUDENT_DELETED", existing.getStudentId(),
+                "Deleted student " + existing.getName()));
+        return true;
+    }
+
+    /** Searches for a student by ID. */
+    public Student searchStudent(String studentId) {
+        if (studentId == null || studentId.trim().isEmpty()) {
+            System.err.println("[Error] Search ID cannot be empty.");
+            return null;
+        }
+
+        Student found = studentList.searchStudent(studentId);
+        if (found == null) {
+            System.out.println("[Search Result] No student found with ID: " + studentId.trim());
+        }
+        return found;
+    }
+
+    /** Searches the custom hash table for a student by ID. */
+    public Student searchStudentByHashing(String studentId) {
+        return studentHashTable.search(studentId);
+    }
+
+    /** Displays students in ascending Student ID order using the BST. */
+    public void displayStudentsInorder() {
+        studentTree.inorderTraversal();
+    }
+
+    /**
+     * Checks if a student with the given ID exists in the system.
+     *
+     * @param studentId ID to check
+     * @return true if exists, false otherwise
+     */
+    public boolean studentExists(String studentId) {
+        return studentList.studentExists(studentId);
+    }
+
+    /**
+     * Displays all student records in a clean tabular view.
+     */
+    public void displayStudents() {
+        studentList.displayStudents();
+    }
+
+    /**
+     * Returns total number of registered students.
+     *
+     * @return current count
+     */
+    public int getTotalStudents() {
+        return studentList.getSize();
+    }
+
+    /**
+     * Pre-loads demo data into the linked list for quick testing and peer verification.
+     */
+    public void populateSampleData() {
+        addStudent("S101", "Alice Johnson", "BSc Computer Science", 88.50);
+        addStudent("S102", "Bob Smith", "BEng Software Engineering", 74.00);
+        addStudent("S103", "Charlie Davis", "BSc Information Technology", 92.00);
+        addStudent("S104", "Diana Prince", "BSc Data Science", 65.50);
+        addStudent("S105", "Evan Wright", "BSc Computer Science", 48.00);
+    }
+}
         if (!removed) {
             System.err.println("[Error] Cannot delete: Student with ID '" + studentId.trim() + "' does not exist.");
         } else {
@@ -194,6 +302,16 @@ public class StudentManager {
             System.out.println("[Search Result] No student found with ID: " + studentId.trim());
         }
         return found;
+    }
+
+    /** Searches the custom hash table for a student by ID. */
+    public Student searchStudentByHashing(String studentId) {
+        return studentHashTable.search(studentId);
+    }
+
+    /** Displays students in ascending Student ID order using the BST. */
+    public void displayStudentsInorder() {
+        studentTree.inorderTraversal();
     }
 
     /**
