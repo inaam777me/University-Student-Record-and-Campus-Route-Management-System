@@ -10,7 +10,7 @@ import java.util.Objects;
  * Represents an individual student entity within the university system.
  * Holds essential student details: Student ID, Name, Programme, and Marks.
  */
-public class Student {
+public class Student implements Comparable<Student> {
     private String studentId;
     private String name;
     private String programme;
@@ -142,5 +142,13 @@ public class Student {
     @Override
     public int hashCode() {
         return Objects.hash(studentId.toLowerCase());
+    }
+
+    @Override
+    public int compareTo(Student other) {
+        if (other == null) {
+            return 1;
+        }
+        return this.studentId.compareToIgnoreCase(other.studentId);
     }
 }
