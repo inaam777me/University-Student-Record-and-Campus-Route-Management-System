@@ -1,6 +1,8 @@
 package com.university.app;
 
 import com.university.management.StudentManager;
+import com.university.management.StudentServiceManager;
+import com.university.model.ServiceRequest;
 import com.university.model.Student;
 
 import java.util.Scanner;
@@ -34,10 +36,11 @@ public class StudentRecordApp {
      */
     public static void runStudentRecordMenu(Scanner scanner, StudentManager manager) {
         boolean exit = false;
+        StudentServiceManager services = new StudentServiceManager(manager);
 
         while (!exit) {
             printMenuHeader();
-            System.out.print("Enter your choice (1-8): ");
+            System.out.print("Enter your choice (1-12): ");
             String input = scanner.nextLine().trim();
 
             switch (input) {
@@ -66,8 +69,24 @@ public class StudentRecordApp {
                     System.out.println("\n[Exit] Exiting Student Record Management System. Goodbye!");
                     exit = true;
                     break;
+                case "9":
+                    handleAddServiceRequest(scanner, services);
+                    break;
+                case "10":
+                    handleProcessServiceRequest(services);
+                    break;
+                case "11":
+                    System.out.println("\n--- Pending Service Requests (Oldest First) ---");
+                    services.displayPendingRequests();
+                    System.out.println();
+                    break;
+                case "12":
+                    System.out.println("\n--- Recent Actions (Newest First) ---");
+                    manager.getActionStack().display();
+                    System.out.println();
+                    break;
                 default:
-                    System.out.println("\n[Warning] Invalid option selected. Please enter a number between 1 and 8.\n");
+                    System.out.println("\n[Warning] Invalid option selected. Please enter a number between 1 and 12.\n");
             }
         }
     }
@@ -85,6 +104,10 @@ public class StudentRecordApp {
         System.out.println("  6. Check if Student ID Exists");
         System.out.println("  7. Load Sample / Demo Records");
         System.out.println("  8. Return / Exit");
+        System.out.println("  9. Add Service Request");
+        System.out.println(" 10. Process Next Service Request");
+        System.out.println(" 11. Display Pending Service Requests");
+        System.out.println(" 12. Display Recent Actions");
         System.out.println("=================================================================");
     }
 
@@ -182,6 +205,27 @@ public class StudentRecordApp {
         System.out.println("\nLoading 5 sample student records...");
         manager.populateSampleData();
         System.out.println("[Success] Demo data loaded successfully. Use Option 5 to view.\n");
+    }
+
+    private static void handleAddServiceRequest(Scanner scanner, StudentServiceManager services) {
+        System.out.println("\n--- [Add Service Request] ---");
+        String requestId = promptNonEmptyString(scanner, "Enter Request ID: ");
+        String studentId = promptNonEmptyString(scanner, "Enter Student ID: ");
+        String description = promptNonEmptyString(scanner, "Enter Request Description: ");
+        if (services.addServiceRequest(requestId, studentId, description)) {
+            System.out.println("[Success] Request added to the pending queue.\n");
+        } else {
+            System.out.println("[Failure] Invalid request, duplicate pending ID, or student not found.\n");
+        }
+    }
+
+    private static void handleProcessServiceRequest(StudentServiceManager services) {
+        ServiceRequest request = services.processNextRequest();
+        if (request == null) {
+            System.out.println("\n[Info] No pending service requests.\n");
+            return;
+        }
+        System.out.println("\n[Success] Processed: " + request + "\n");
     }
 
     // --- Helper Input Methods with Validation ---

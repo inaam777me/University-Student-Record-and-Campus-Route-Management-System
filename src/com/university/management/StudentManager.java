@@ -1,6 +1,8 @@
 package com.university.management;
 
 import com.university.datastructures.StudentLinkedList;
+import com.university.datastructures.ActionStack;
+import com.university.model.Action;
 import com.university.model.Student;
 
 /**
@@ -15,12 +17,13 @@ import com.university.model.Student;
  */
 public class StudentManager {
     private final StudentLinkedList studentList;
+    private final ActionStack actionStack;
 
     /**
      * Constructs a new StudentManager with an internal custom StudentLinkedList.
      */
     public StudentManager() {
-        this.studentList = new StudentLinkedList();
+        this(new StudentLinkedList(), new ActionStack());
     }
 
     /**
@@ -30,10 +33,19 @@ public class StudentManager {
      * @param studentList Existing linked list instance
      */
     public StudentManager(StudentLinkedList studentList) {
+        this(studentList, new ActionStack());
+    }
+
+    /** Constructs a manager using shared data structures supplied by the integrating application. */
+    public StudentManager(StudentLinkedList studentList, ActionStack actionStack) {
         if (studentList == null) {
             throw new IllegalArgumentException("StudentLinkedList cannot be null.");
         }
+        if (actionStack == null) {
+            throw new IllegalArgumentException("ActionStack cannot be null.");
+        }
         this.studentList = studentList;
+        this.actionStack = actionStack;
     }
 
     /**
@@ -43,6 +55,11 @@ public class StudentManager {
      */
     public StudentLinkedList getStudentList() {
         return studentList;
+    }
+
+    /** Returns the recent-action stack shared with peer service modules. */
+    public ActionStack getActionStack() {
+        return actionStack;
     }
 
     /**
@@ -79,7 +96,12 @@ public class StudentManager {
         }
 
         Student student = new Student(studentId, name, programme, marks);
-        return studentList.addStudent(student);
+        boolean added = studentList.addStudent(student);
+        if (added) {
+            actionStack.push(new Action("STUDENT_ADDED", student.getStudentId(),
+                "Added student " + student.getName()));
+        }
+        return added;
     }
 
     /**
@@ -123,7 +145,13 @@ public class StudentManager {
             return false;
         }
 
-        return studentList.updateStudent(studentId, newName.trim(), newProgramme.trim(), newMarks);
+        Student existing = studentList.searchStudent(studentId);
+        boolean updated = studentList.updateStudent(studentId, newName.trim(), newProgramme.trim(), newMarks);
+        if (updated) {
+            actionStack.push(new Action("STUDENT_UPDATED", existing.getStudentId(),
+                "Updated student record for " + existing.getName()));
+        }
+        return updated;
     }
 
     /**
@@ -138,9 +166,13 @@ public class StudentManager {
             return false;
         }
 
+        Student existing = studentList.searchStudent(studentId);
         boolean removed = studentList.deleteStudent(studentId);
         if (!removed) {
             System.err.println("[Error] Cannot delete: Student with ID '" + studentId.trim() + "' does not exist.");
+        } else {
+            actionStack.push(new Action("STUDENT_DELETED", existing.getStudentId(),
+                    "Deleted student " + existing.getName()));
         }
         return removed;
     }
