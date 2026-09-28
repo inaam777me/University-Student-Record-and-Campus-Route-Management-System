@@ -95,6 +95,26 @@ public class StudentLinkedList {
             return false;
         }
 
+        if (student.getStudentId() == null || student.getStudentId().trim().isEmpty()) {
+            System.err.println("[Validation Error] Student ID cannot be null or empty.");
+            return false;
+        }
+
+        if (student.getName() == null || student.getName().trim().isEmpty()) {
+            System.err.println("[Validation Error] Student Name cannot be null or empty.");
+            return false;
+        }
+
+        if (student.getProgramme() == null || student.getProgramme().trim().isEmpty()) {
+            System.err.println("[Validation Error] Programme cannot be null or empty.");
+            return false;
+        }
+
+        if (!Student.isValidMarks(student.getMarks())) {
+            System.err.println("[Validation Error] Marks must be between 0.0 and 100.0. Provided: " + student.getMarks());
+            return false;
+        }
+
         // Duplicate check to enforce primary key uniqueness
         if (studentExists(student.getStudentId())) {
             System.err.println("[Duplicate Error] Student with ID '" + student.getStudentId() + "' already exists.");
@@ -117,6 +137,41 @@ public class StudentLinkedList {
 
         size++;
         return true;
+    }
+
+    /**
+     * Overloaded convenience method to create and add a student directly.
+     *
+     * @param studentId Unique student identifier
+     * @param name      Full student name
+     * @param programme Academic programme
+     * @param marks     Academic marks (0.0 to 100.0)
+     * @return true if successfully created and added, false otherwise
+     */
+    public boolean addStudent(String studentId, String name, String programme, double marks) {
+        if (studentId == null || studentId.trim().isEmpty()) {
+            System.err.println("[Validation Error] Student ID cannot be null or empty.");
+            return false;
+        }
+        if (name == null || name.trim().isEmpty()) {
+            System.err.println("[Validation Error] Student Name cannot be null or empty.");
+            return false;
+        }
+        if (programme == null || programme.trim().isEmpty()) {
+            System.err.println("[Validation Error] Programme cannot be null or empty.");
+            return false;
+        }
+        if (!Student.isValidMarks(marks)) {
+            System.err.println("[Validation Error] Marks must be between 0.0 and 100.0. Provided: " + marks);
+            return false;
+        }
+        if (studentExists(studentId)) {
+            System.err.println("[Duplicate Error] Student with ID '" + studentId.trim() + "' already exists.");
+            return false;
+        }
+
+        Student student = new Student(studentId, name, programme, marks);
+        return addStudent(student);
     }
 
     /**
@@ -145,17 +200,29 @@ public class StudentLinkedList {
 
     /**
      * Updates an existing student's name, programme, and marks.
-     * Performs validation on marks before applying updates.
+     * Performs strict validation on all input fields before applying updates.
      *
      * @param studentId    The ID of the student to update
      * @param newName      The updated student name
      * @param newProgramme The updated programme
      * @param newMarks     The updated marks (0.0 to 100.0)
-     * @return true if updated successfully, false if student not found or invalid marks
+     * @return true if updated successfully, false if student not found or invalid inputs
      */
     public boolean updateStudent(String studentId, String newName, String newProgramme, double newMarks) {
+        if (studentId == null || studentId.trim().isEmpty()) {
+            System.err.println("[Validation Error] Student ID cannot be null or empty.");
+            return false;
+        }
+        if (newName == null || newName.trim().isEmpty()) {
+            System.err.println("[Validation Error] Student name cannot be null or empty.");
+            return false;
+        }
+        if (newProgramme == null || newProgramme.trim().isEmpty()) {
+            System.err.println("[Validation Error] Programme cannot be null or empty.");
+            return false;
+        }
         if (!Student.isValidMarks(newMarks)) {
-            System.err.println("[Validation Error] Marks must be between 0.0 and 100.0.");
+            System.err.println("[Validation Error] Marks must be between 0.0 and 100.0. Provided: " + newMarks);
             return false;
         }
 
@@ -165,9 +232,9 @@ public class StudentLinkedList {
             return false;
         }
 
-        // Apply updates
-        student.setName(newName);
-        student.setProgramme(newProgramme);
+        // Apply updates safely
+        student.setName(newName.trim());
+        student.setProgramme(newProgramme.trim());
         student.setMarks(newMarks);
         return true;
     }
