@@ -1,119 +1,165 @@
 # University Student Record and Campus Route Management System
 **Course:** CIT300 Data Structures and Algorithms  
-<<<<<<< HEAD
-**Components:** Member 1 - Student Records; Member 2 - Action Stack & Service Request Queue  
-=======
-**Components:** Member 1 - Student Records; Member 3 - BST and Hash Table
->>>>>>> c9deb9d83f67fb0780d7f34c31810618521bc8e1
+**Project Role:** Lead Developer Integration (Members 1, 2, 3, and 4)
 
 ---
 
 ## 📌 Project Overview
-The project implements student records with a custom singly linked list and provides a custom linked-node stack for recent actions plus a custom FIFO queue for student service requests. The stack and queue do not use Java's built-in collection implementations.
+The **University Student Record and Campus Route Management System** is a unified, high-performance Java console application integrating seven foundational computer science data structures into a single cohesive system:
+
+1. **Custom Singly Linked List** (Member 1) — Primary dynamic sequential storage for student records.
+2. **Custom Linked Stack (LIFO)** (Member 2) — Audit history log tracking recent system mutations (Add, Update, Delete, Process Request).
+3. **Custom Linked Queue (FIFO)** (Member 2) — Student service request processing queue ensuring fair first-come, first-served execution.
+4. **Binary Search Tree (BST)** (Member 3) — Natural ordering by unique Student ID with $O(\log n)$ average search and in-order sorted reporting.
+5. **Separate-Chaining Hash Table** (Member 3) — Fixed-bucket hash map with linked collision resolution providing near $O(1)$ student record lookup.
+6. **Custom Undirected Campus Graph** (Member 4) — Adjacency list representation of campus location vertices and bidirectional road edges.
+7. **Graph Traversals: BFS & DFS** (Member 4) — Breadth-First Search (level-by-level shortest reach) and Depth-First Search (deep exploration) for campus navigation.
+
+> [!IMPORTANT]
+> Zero reliance on Java's built-in collections framework (`ArrayList`, `LinkedList`, `HashMap`, `TreeMap`, `Stack`, `Queue`). All nodes, pointers, and memory links are implemented completely from scratch.
 
 ---
 
 ## 📂 Project Structure
 ```
 University Student Record and Campus Route Management System/
-├── bin/                                    # Compiled Java bytecode (.class files)
+├── bin/                                            # Compiled Java bytecode (.class files)
 ├── src/
 │   └── com/
 │       └── university/
 │           ├── model/
-│           │   └── Student.java            # Student entity (ID, Name, Programme, Marks, Grade)
+│           │   ├── Student.java                    # Core entity (ID, Name, Programme, Marks, Grade)
+│           │   ├── Action.java                     # LIFO audit history entry
+│           │   └── ServiceRequest.java             # Validated service request item
 │           ├── datastructures/
-│           │   ├── StudentNode.java        # Singly linked list node
-│           │   └── StudentLinkedList.java  # Custom linked list with add, update, delete, search
-<<<<<<< HEAD
-│           │   ├── ActionStack.java        # Custom LIFO history stack
-│           │   └── ServiceRequestQueue.java # Custom FIFO pending-request queue
-=======
-│           │   ├── StudentBinarySearchTree.java # BST ordered by Student ID
-│           │   └── StudentHashTable.java   # Separate-chaining hash table
->>>>>>> c9deb9d83f67fb0780d7f34c31810618521bc8e1
+│           │   ├── StudentNode.java                # Singly linked list node
+│           │   ├── StudentLinkedList.java          # Custom linked list with CRUD operations
+│           │   ├── ActionStack.java                # Custom linked LIFO stack
+│           │   ├── ServiceRequestQueue.java        # Custom linked FIFO queue
+│           │   ├── StudentBinarySearchTree.java    # ID-ordered binary search tree
+│           │   ├── StudentHashTable.java           # Separate-chaining hash table (11 buckets)
+│           │   ├── CampusLocationNode.java         # Graph location vertex node
+│           │   ├── GraphEdgeNode.java              # Adjacency list edge node
+│           │   └── CampusGraph.java                # Graph structure with roads, BFS, and DFS
 │           ├── management/
-│           │   └── StudentManager.java     # Service / business logic controller
-│           │   └── StudentServiceManager.java # Student-aware service request operations
-│           ├── model/
-│           │   ├── Action.java             # History entry
-│           │   └── ServiceRequest.java      # Validated service request
+│           │   ├── StudentManager.java             # Multi-structure business logic & synchronization controller
+│           │   └── StudentServiceManager.java      # Student-aware FIFO service request manager
 │           ├── app/
-│           │   └── StudentRecordApp.java   # Interactive console UI
+│           │   ├── Main.java                       # Master integrated console application (16 options)
+│           │   └── StudentRecordApp.java           # Standalone Member 1 console UI
 │           └── test/
-│               ├── StudentManagementTest.java # Member 1 tests
-│               └── Member2ServicesTest.java   # Stack, queue, and integration tests
+│               ├── StudentManagementTest.java      # Member 1 & 3 automated verification (65 tests)
+│               ├── Member2ServicesTest.java        # Member 2 Stack & Queue verification (28 tests)
+│               └── CampusGraphTest.java            # Member 4 Campus Graph verification (50 tests)
 └── README.md
 ```
 
 ---
 
+## 🔄 Multi-Structure Synchronization Architecture
+
+```
+                                  [Incoming User Operation]
+                                              │
+                                              ▼
+                                    ┌───────────────────┐
+                                    │  StudentManager   │
+                                    └─────────┬─────────┘
+                                              │
+            ┌──────────────────┬──────────────┴───────────────┬──────────────────┐
+            ▼                  ▼                              ▼                  ▼
+   ┌─────────────────┐ ┌───────────────┐              ┌───────────────┐ ┌─────────────────┐
+   │StudentLinkedList│ │  StudentBST   │              │StudentHashTable│ │   ActionStack   │
+   ├─────────────────┤ ├───────────────┤              ├───────────────┤ ├─────────────────┤
+   │ addStudent()    │ │ insert()      │              │ insert()      │ │ push(Action)    │
+   │ updateStudent() │ │ (Shared Ref)  │              │ (Shared Ref)  │ │ push(Action)    │
+   │ deleteStudent() │ │ delete()      │              │ delete()      │ │ push(Action)    │
+   └─────────────────┘ └───────────────┘              └───────────────┘ └─────────────────┘
+```
+
+1. **Add Student**: Appends to `StudentLinkedList`, inserts into `StudentBST`, indexes into `StudentHashTable`, and pushes a `"STUDENT_ADDED"` audit log to `ActionStack`.
+2. **Update Student**: Mutates the shared `Student` entity in-place. Because the BST and Hash Table hold identical object references, updates to Name, Programme, and Marks are instantly reflected in all structures without rebuilding trees or hash buckets. Pushes `"STUDENT_UPDATED"` to `ActionStack`.
+3. **Delete Student**: Unlinks node from `StudentLinkedList`, removes and rebalances node in `StudentBST`, removes entry from `StudentHashTable` bucket chain, and pushes `"STUDENT_DELETED"` to `ActionStack`.
+4. **Service Request Pipeline**: Verifies that the Student ID exists in the system, enqueues to `ServiceRequestQueue`, and on `processNextRequest()`, dequeues in FIFO order and pushes `"SERVICE_REQUEST_PROCESSED"` to `ActionStack`.
+
+---
+
 ## 🚀 How to Compile & Run
 
-### 1. Compile All Files:
+### 1. Compile All Components:
 ```bash
-javac -d bin src/com/university/model/*.java src/com/university/datastructures/*.java src/com/university/management/*.java src/com/university/app/*.java src/com/university/test/*.java
+# Windows PowerShell
+javac -d bin (Get-ChildItem -Recurse -Filter *.java src | ForEach-Object { $_.FullName })
+
+# Linux / macOS / Bash
+javac -d bin $(find src -name "*.java")
 ```
 
-### 2. Run the Interactive Console Application:
+### 2. Run the Integrated Master Application:
 ```bash
-java -cp bin com.university.app.StudentRecordApp
+java -cp bin com.university.app.Main
 ```
 
-### 3. Run the Automated Test Suite:
+### 3. Run All Automated Test Suites (143 Tests):
 ```bash
+# Member 1 & 3: Linked List, BST, Hash Table, Synchronization (65 tests)
 java -cp bin com.university.test.StudentManagementTest
+
+# Member 2: Action Stack & Service Request Queue (28 tests)
 java -cp bin com.university.test.Member2ServicesTest
+
+# Member 4: Campus Graph, Adjacency List, Roads, BFS & DFS (50 tests)
+java -cp bin com.university.test.CampusGraphTest
 ```
 
 ---
 
-## 🤝 Integration for Group Members
-<<<<<<< HEAD
-- **Member 2 (Stack & Queue):** `StudentManager` records successful add, update, and delete operations in `getActionStack()`. Construct `StudentServiceManager` with the shared manager to validate student IDs, enqueue requests, process them FIFO, and record processing actions. Its queue and history stack are also available through `getPendingRequestCount()`, `displayPendingRequests()`, and `getActionStack()`.
-- **Member 3 (BST / AVL Tree):** Call `Student[] students = manager.getStudentList().getAllStudents();` and insert them into your tree for O(log n) lookups and sorted reports.
-- **Member 4 (Hashing / Hash Table):** Hash `student.getStudentId()` as the key and store `student` in your buckets for O(1) searches.
-- **Member 5 (Graph / Campus Routes):** Associate student records with campus destination nodes using `student.getStudentId()`.
-
-### Member 2 Integration Example
-```java
-StudentManager manager = new StudentManager();
-StudentServiceManager services = new StudentServiceManager(manager);
-
-manager.addStudent("S201", "Ada Student", "BSc Computing", 85.0);
-services.addServiceRequest("R1", "S201", "Request an academic transcript");
-services.displayPendingRequests();
-services.processNextRequest();
-manager.getActionStack().display();
-```
-
-Request fields must be non-empty, the student must exist, and a request ID cannot duplicate another pending request (case-insensitive). Empty `pop`, `peek`, and `dequeue` operations return `null`.
-=======
-- **Member 2 (Stack & Queue):** Use `manager.getStudentList().getAllStudents()` or pass `Student` objects directly to your stack/queue.
-- **Member 3 (BST and Hash Table):** `StudentManager` owns both custom structures and keeps them synchronized with the linked list. Use `manager.getStudentTree().search("S101")`, `manager.getStudentTree().delete("S101")`, `manager.displayStudentsInorder()`, or `manager.searchStudentByHashing("S101")`. The constructor accepting an existing list indexes its current students.
-- **Member 5 (Graph / Campus Routes):** Associate student records with campus destination nodes using `student.getStudentId()`.
-
-## Member 3: BST and Hash Table
-
-The BST compares IDs case-insensitively. Search starts at the root, compares the requested ID with the current node, and follows only the left subtree for a smaller ID or the right subtree for a larger ID. It stops on a match or an empty child, taking O(h) time where h is tree height; an unbalanced tree can reach O(n), while a balanced tree is O(log n). Inorder traversal visits left, node, then right, so IDs display in sorted order.
-
-The hash table uses a fixed array of 11 buckets and separate chaining. A normalized, case-insensitive ID hash selects the bucket; insert and search scan only that bucket's linked chain. IDs that map to the same bucket coexist in that chain, so collisions do not overwrite records. Average lookup is O(1) at a reasonable load, with O(n) worst case.
-
-Student IDs must be non-null and non-blank; duplicate IDs are rejected case-insensitively. Missing searches return `null`, missing deletions return `false`, and empty traversals/displays report that the structure is empty. Add and delete through `StudentManager` to keep the list, BST, and hash table synchronized. Updates to a student's name, programme, or marks are visible in both indexes because all structures reference the same `Student` object.
-
-The console menu provides option 8 to display BST inorder and option 9 to search by hash table; option 10 exits. Example:
+## 📋 Master Console Menu (16 Unified Options)
 
 ```text
-Enter your choice (1-10): 8
-Student[ID=S101, Name=Alice Johnson, Programme=BSc Computer Science, Marks=88.50, Grade=A]
-Student[ID=S102, Name=Bob Smith, Programme=BEng Software Engineering, Marks=74.00, Grade=B]
-
-Enter your choice (1-10): 9
-Enter Student ID to search: S102
-[Hash Search Result] Student[ID=S102, Name=Bob Smith, Programme=BEng Software Engineering, Marks=74.00, Grade=B]
+=================================================================
+  UNIVERSITY STUDENT RECORD AND CAMPUS ROUTE MANAGEMENT SYSTEM  
+                CIT300 Data Structures and Algorithms            
+=================================================================
+   1. Add Student Record
+   2. Update Student Record
+   3. Delete Student Record
+   4. Display All Records using Linked List
+   5. Add Service Request to Queue
+   6. Process Next Service Request
+   7. Display Recent Actions using Stack
+   8. Display Students using BST
+   9. Search Student using Hashing
+  10. Add Campus Location
+  11. Remove Campus Location
+  12. Add Campus Connection/Road
+  13. Remove Campus Connection/Road
+  14. Display Campus Connections
+  15. Traverse Campus Locations using BFS/DFS
+  16. Exit
+=================================================================
 ```
 
-The automated suite covers tree insertion/search/deletion (including a two-child delete), case-insensitive duplicates, collision-chain operations, missing/blank IDs, and manager synchronization.
+---
 
-Suggested commit message: `Add synchronized student BST and hash table`
->>>>>>> c9deb9d83f67fb0780d7f34c31810618521bc8e1
+## 🛡️ Defensive Input Validation Matrix
+
+| Input Category | Constraint Enforced | Defensive Handling |
+| :--- | :--- | :--- |
+| **Student ID** | Non-null, non-blank, globally unique | Case-insensitive duplicate check before insertion; clean warning |
+| **Student Name & Programme** | Non-null, non-empty, non-whitespace | Re-prompts in UI; returns `false` in service logic |
+| **Academic Marks** | Double in range $[0.0, 100.0]$ | Validated via `Student.isValidMarks(m)`; catches `NumberFormatException` |
+| **Service Request** | Student ID must exist; Request ID unique | Validates student before enqueueing; prevents duplicate pending IDs |
+| **Empty Data Structures** | Operations executed when empty | Displays user-friendly notice without throwing `NullPointerException` |
+| **Campus Locations** | Unique location name; non-empty | Case-insensitive duplicate rejection; preserves existing graph |
+| **Campus Roads** | Undirected; no self-loops; vertices exist | Verifies both endpoints exist; prevents duplicate or reflexive roads |
+| **BFS / DFS Start Node** | Must match existing location vertex | Validates vertex existence prior to starting queue/recursion |
+
+---
+
+## 👥 Group Member Contributions & Component Allocation
+- **Member 1**: `Student`, `StudentNode`, `StudentLinkedList`, Student CRUD logic, input validation.
+- **Member 2**: `Action`, `ServiceRequest`, `ActionStack` (LIFO), `ServiceRequestQueue` (FIFO), `StudentServiceManager`.
+- **Member 3**: `StudentBinarySearchTree` (ID ordering, deletion, inorder display), `StudentHashTable` (Separate chaining, 11 buckets).
+- **Member 4**: `CampusLocationNode`, `GraphEdgeNode`, `CampusGraph` (Adjacency list, bidirectional roads, BFS, DFS).
+- **Lead Developer**: Master `Main.java` integration, multi-structure synchronization, git conflict resolution, testing.

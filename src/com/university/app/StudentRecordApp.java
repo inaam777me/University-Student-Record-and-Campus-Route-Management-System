@@ -40,11 +40,7 @@ public class StudentRecordApp {
 
         while (!exit) {
             printMenuHeader();
-<<<<<<< HEAD
-            System.out.print("Enter your choice (1-12): ");
-=======
-            System.out.print("Enter your choice (1-10): ");
->>>>>>> c9deb9d83f67fb0780d7f34c31810618521bc8e1
+            System.out.print("Enter your choice (1-14): ");
             String input = scanner.nextLine().trim();
 
             switch (input) {
@@ -76,31 +72,27 @@ public class StudentRecordApp {
                     handleHashSearch(scanner, manager);
                     break;
                 case "10":
-                    System.out.println("\n[Exit] Exiting Student Record Management System. Goodbye!");
-                    exit = true;
-                    break;
-                case "9":
                     handleAddServiceRequest(scanner, services);
                     break;
-                case "10":
+                case "11":
                     handleProcessServiceRequest(services);
                     break;
-                case "11":
+                case "12":
                     System.out.println("\n--- Pending Service Requests (Oldest First) ---");
                     services.displayPendingRequests();
                     System.out.println();
                     break;
-                case "12":
+                case "13":
                     System.out.println("\n--- Recent Actions (Newest First) ---");
                     manager.getActionStack().display();
                     System.out.println();
                     break;
+                case "14":
+                    System.out.println("\n[Exit] Exiting Student Record Management System. Goodbye!");
+                    exit = true;
+                    break;
                 default:
-<<<<<<< HEAD
-                    System.out.println("\n[Warning] Invalid option selected. Please enter a number between 1 and 12.\n");
-=======
-                    System.out.println("\n[Warning] Invalid option selected. Please enter a number between 1 and 10.\n");
->>>>>>> c9deb9d83f67fb0780d7f34c31810618521bc8e1
+                    System.out.println("\n[Warning] Invalid option selected. Please enter a number between 1 and 14.\n");
             }
         }
     }
@@ -117,17 +109,13 @@ public class StudentRecordApp {
         System.out.println("  5. Display All Registered Students");
         System.out.println("  6. Check if Student ID Exists");
         System.out.println("  7. Load Sample / Demo Records");
-<<<<<<< HEAD
-        System.out.println("  8. Return / Exit");
-        System.out.println("  9. Add Service Request");
-        System.out.println(" 10. Process Next Service Request");
-        System.out.println(" 11. Display Pending Service Requests");
-        System.out.println(" 12. Display Recent Actions");
-=======
         System.out.println("  8. Display Students using BST (Student ID order)");
         System.out.println("  9. Search Student using Hashing");
-        System.out.println(" 10. Return / Exit");
->>>>>>> c9deb9d83f67fb0780d7f34c31810618521bc8e1
+        System.out.println(" 10. Add Service Request");
+        System.out.println(" 11. Process Next Service Request");
+        System.out.println(" 12. Display Pending Service Requests");
+        System.out.println(" 13. Display Recent Actions");
+        System.out.println(" 14. Return / Exit");
         System.out.println("=================================================================");
     }
 

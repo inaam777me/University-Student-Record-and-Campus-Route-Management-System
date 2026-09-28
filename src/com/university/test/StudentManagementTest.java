@@ -3,7 +3,6 @@ package com.university.test;
 import com.university.datastructures.StudentLinkedList;
 import com.university.datastructures.StudentBinarySearchTree;
 import com.university.datastructures.StudentHashTable;
-import com.university.datastructures.StudentNode;
 import com.university.management.StudentManager;
 import com.university.model.Student;
 
