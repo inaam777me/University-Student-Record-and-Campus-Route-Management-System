@@ -1,6 +1,9 @@
 package com.university.management;
 
 import com.university.datastructures.StudentLinkedList;
+import com.university.datastructures.StudentBinarySearchTree;
+import com.university.datastructures.StudentHashTable;
+import com.university.datastructures.StudentNode;
 import com.university.model.Student;
 
 /**
@@ -15,12 +18,16 @@ import com.university.model.Student;
  */
 public class StudentManager {
     private final StudentLinkedList studentList;
+    private final StudentBinarySearchTree studentTree;
+    private final StudentHashTable studentHashTable;
 
     /**
      * Constructs a new StudentManager with an internal custom StudentLinkedList.
      */
     public StudentManager() {
         this.studentList = new StudentLinkedList();
+        this.studentTree = new StudentBinarySearchTree();
+        this.studentHashTable = new StudentHashTable();
     }
 
     /**
@@ -34,6 +41,14 @@ public class StudentManager {
             throw new IllegalArgumentException("StudentLinkedList cannot be null.");
         }
         this.studentList = studentList;
+        this.studentTree = new StudentBinarySearchTree();
+        this.studentHashTable = new StudentHashTable();
+        StudentNode current = studentList.getHead();
+        while (current != null) {
+            studentTree.insert(current.getData());
+            studentHashTable.insert(current.getData());
+            current = current.getNext();
+        }
     }
 
     /**
@@ -43,6 +58,14 @@ public class StudentManager {
      */
     public StudentLinkedList getStudentList() {
         return studentList;
+    }
+
+    public StudentBinarySearchTree getStudentTree() {
+        return studentTree;
+    }
+
+    public StudentHashTable getStudentHashTable() {
+        return studentHashTable;
     }
 
     /**
@@ -79,7 +102,12 @@ public class StudentManager {
         }
 
         Student student = new Student(studentId, name, programme, marks);
-        return studentList.addStudent(student);
+        if (!studentList.addStudent(student)) {
+            return false;
+        }
+        studentTree.insert(student);
+        studentHashTable.insert(student);
+        return true;
     }
 
     /**
@@ -139,6 +167,10 @@ public class StudentManager {
         }
 
         boolean removed = studentList.deleteStudent(studentId);
+        if (removed) {
+            studentTree.delete(studentId);
+            studentHashTable.delete(studentId);
+        }
         if (!removed) {
             System.err.println("[Error] Cannot delete: Student with ID '" + studentId.trim() + "' does not exist.");
         }
@@ -162,6 +194,16 @@ public class StudentManager {
             System.out.println("[Search Result] No student found with ID: " + studentId.trim());
         }
         return found;
+    }
+
+    /** Searches the custom hash table for a student by ID. */
+    public Student searchStudentByHashing(String studentId) {
+        return studentHashTable.search(studentId);
+    }
+
+    /** Displays students in ascending Student ID order using the BST. */
+    public void displayStudentsInorder() {
+        studentTree.inorderTraversal();
     }
 
     /**

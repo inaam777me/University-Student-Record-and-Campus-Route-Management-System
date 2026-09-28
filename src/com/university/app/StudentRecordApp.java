@@ -37,7 +37,7 @@ public class StudentRecordApp {
 
         while (!exit) {
             printMenuHeader();
-            System.out.print("Enter your choice (1-8): ");
+            System.out.print("Enter your choice (1-10): ");
             String input = scanner.nextLine().trim();
 
             switch (input) {
@@ -63,11 +63,17 @@ public class StudentRecordApp {
                     handleLoadDemoData(manager);
                     break;
                 case "8":
+                    manager.displayStudentsInorder();
+                    break;
+                case "9":
+                    handleHashSearch(scanner, manager);
+                    break;
+                case "10":
                     System.out.println("\n[Exit] Exiting Student Record Management System. Goodbye!");
                     exit = true;
                     break;
                 default:
-                    System.out.println("\n[Warning] Invalid option selected. Please enter a number between 1 and 8.\n");
+                    System.out.println("\n[Warning] Invalid option selected. Please enter a number between 1 and 10.\n");
             }
         }
     }
@@ -84,7 +90,9 @@ public class StudentRecordApp {
         System.out.println("  5. Display All Registered Students");
         System.out.println("  6. Check if Student ID Exists");
         System.out.println("  7. Load Sample / Demo Records");
-        System.out.println("  8. Return / Exit");
+        System.out.println("  8. Display Students using BST (Student ID order)");
+        System.out.println("  9. Search Student using Hashing");
+        System.out.println(" 10. Return / Exit");
         System.out.println("=================================================================");
     }
 
@@ -164,6 +172,18 @@ public class StudentRecordApp {
 
     private static void handleDisplayAll(StudentManager manager) {
         manager.displayStudents();
+    }
+
+    private static void handleHashSearch(Scanner scanner, StudentManager manager) {
+        System.out.println("\n--- [Search Student using Hash Table] ---");
+        String studentId = promptNonEmptyString(scanner, "Enter Student ID to search: ");
+        Student student = manager.searchStudentByHashing(studentId);
+        if (student == null) {
+            System.out.println("[Result] No record found matching ID '" + studentId + "'.\n");
+            return;
+        }
+
+        System.out.println("[Hash Search Result] " + student);
     }
 
     private static void handleCheckExistence(Scanner scanner, StudentManager manager) {
