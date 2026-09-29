@@ -999,10 +999,10 @@ The Lead Developer integrated the individual components into a single menu-drive
 
 | Member   | Student Name | Student ID     | Main Responsibility   |
 | -------- | ------------ | -------------- | --------------------- |
-| Member 1 | `[NAME]`     | `[STUDENT ID]` | Student / Linked List |
-| Member 2 | `[NAME]`     | `[STUDENT ID]` | Stack / Queue         |
-| Member 3 | `[NAME]`     | `[STUDENT ID]` | BST / Hashing         |
-| Member 4 | `[NAME]`     | `[STUDENT ID]` | Graph / BFS / DFS     |
+| Member 1 | `B.Inaamul Hasan`     | `23da2-0870` | Student / Linked List |
+| Member 2 | `Mushna`     | `23da2-0756` | Stack / Queue         |
+| Member 3 | `Safana`     | `23da2-0474` | BST / Hashing         |
+| Member 4 | `Sahama`     | `23da2-0707` | Graph / BFS / DFS     |
 
 ---
 
